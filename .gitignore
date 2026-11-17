@@ -1,0 +1,30 @@
+# --- Secrets: NEVER commit ---
+.env
+
+# --- Python environment & cache ---
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- Generated data (reproducible from code, too large for GitHub) ---
+data/raw/*
+data/processed/*
+data/rejected/*
+data/synthetic/*
+!data/**/.gitkeep
+
+# --- Logs & generated reports ---
+logs/*
+!logs/.gitkeep
+reports/monthly_reports/*
+!reports/monthly_reports/.gitkeep
+
+# --- Editor / OS clutter ---
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Excel lock files ---
+~$*.xlsx

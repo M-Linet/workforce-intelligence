@@ -1,0 +1,22 @@
+# --- Data handling ---
+pandas>=2.1,<3.0
+numpy>=1.26
+openpyxl>=3.1          # read/write Excel files
+
+# --- Database ---
+SQLAlchemy>=2.0
+psycopg[binary]>=3.1   # PostgreSQL driver (version 3)
+
+# --- Synthetic data ---
+Faker>=24.0
+
+# --- Configuration ---
+PyYAML>=6.0
+python-dotenv>=1.0     # loads secrets from .env
+
+# --- Reporting ---
+matplotlib>=3.8
+reportlab>=4.0         # PDF generation
+
+# --- Testing ---
+pytest>=8.0
