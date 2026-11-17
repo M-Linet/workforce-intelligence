@@ -1,0 +1,212 @@
+# =====================================================================
+# GUDA — Organisation configuration for synthetic data generation
+# DISCLAIMER: The Global Urban Development Alliance (GUDA) is a FICTIONAL
+# organisation. All records generated from this file are synthetic.
+# This is an independent portfolio project, not an official UN system.
+# =====================================================================
+
+organisation:
+  name: Global Urban Development Alliance
+  short_name: GUDA
+  headquarters: Nairobi
+
+generation:
+  random_seed: 42              # same seed = identical data every run (reproducibility)
+  total_employees: 3000
+  total_recruitments: 1000
+  first_reporting_month: "2024-11"
+  last_reporting_month: "2026-10"   # 24 monthly snapshots
+
+# ---------------------------------------------------------------------
+# Offices. Each has its own "submission habits", which is where the
+# data-quality problems come from.
+#   headcount_weight : share of workforce (weights sum to 100)
+#   file_format      : how the office submits files
+#   date_format      : the office's local date convention
+#   column_style     : how the office names its columns
+#   error_rate_start / error_rate_end : share of records with problems at
+#                      the start vs the end of the period (simulates the
+#                      effect of data-quality training over time)
+# ---------------------------------------------------------------------
+offices:
+  - office_id: OFF01
+    office_name: Nairobi Headquarters
+    country: Kenya
+    region: Africa
+    city: Nairobi
+    office_type: Headquarters
+    headcount_weight: 25
+    file_format: csv
+    date_format: "%Y-%m-%d"
+    column_style: snake_case
+    error_rate_start: 0.04
+    error_rate_end: 0.02
+
+  - office_id: OFF02
+    office_name: Addis Ababa Regional Office
+    country: Ethiopia
+    region: Africa
+    city: Addis Ababa
+    office_type: Regional Office
+    headcount_weight: 10
+    file_format: xlsx
+    date_format: "%d/%m/%Y"
+    column_style: title_case
+    error_rate_start: 0.10
+    error_rate_end: 0.05
+
+  - office_id: OFF03
+    office_name: Dakar Regional Office
+    country: Senegal
+    region: Africa
+    city: Dakar
+    office_type: Regional Office
+    headcount_weight: 8
+    file_format: csv
+    date_format: "%d/%m/%Y"
+    column_style: title_case
+    error_rate_start: 0.12
+    error_rate_end: 0.07
+
+  - office_id: OFF04
+    office_name: Johannesburg Country Office
+    country: South Africa
+    region: Africa
+    city: Johannesburg
+    office_type: Country Office
+    headcount_weight: 7
+    file_format: xlsx
+    date_format: "%Y/%m/%d"
+    column_style: snake_case
+    error_rate_start: 0.06
+    error_rate_end: 0.03
+
+  - office_id: OFF05
+    office_name: Geneva Liaison Office
+    country: Switzerland
+    region: Europe
+    city: Geneva
+    office_type: Liaison Office
+    headcount_weight: 8
+    file_format: xlsx
+    date_format: "%d.%m.%Y"
+    column_style: title_case
+    error_rate_start: 0.03
+    error_rate_end: 0.02
+
+  - office_id: OFF06
+    office_name: Bangkok Regional Office
+    country: Thailand
+    region: Asia-Pacific
+    city: Bangkok
+    office_type: Regional Office
+    headcount_weight: 10
+    file_format: csv
+    date_format: "%d-%b-%Y"
+    column_style: abbreviated
+    error_rate_start: 0.09
+    error_rate_end: 0.04
+
+  - office_id: OFF07
+    office_name: Dhaka Country Office
+    country: Bangladesh
+    region: Asia-Pacific
+    city: Dhaka
+    office_type: Country Office
+    headcount_weight: 8
+    file_format: xlsx
+    date_format: "%d/%m/%Y"
+    column_style: abbreviated
+    error_rate_start: 0.15
+    error_rate_end: 0.08
+
+  - office_id: OFF08
+    office_name: Amman Regional Office
+    country: Jordan
+    region: Middle East
+    city: Amman
+    office_type: Regional Office
+    headcount_weight: 8
+    file_format: csv
+    date_format: "%d/%m/%Y"
+    column_style: snake_case
+    error_rate_start: 0.08
+    error_rate_end: 0.05
+
+  - office_id: OFF09
+    office_name: Panama City Regional Office
+    country: Panama
+    region: Latin America and Caribbean
+    city: Panama City
+    office_type: Regional Office
+    headcount_weight: 9
+    file_format: xlsx
+    date_format: "%m/%d/%Y"      # month-first: the classic ambiguity trap
+    column_style: title_case
+    error_rate_start: 0.11
+    error_rate_end: 0.06
+
+  - office_id: OFF10
+    office_name: Kinshasa Country Office
+    country: Democratic Republic of the Congo
+    region: Africa
+    city: Kinshasa
+    office_type: Country Office
+    headcount_weight: 7
+    file_format: csv
+    date_format: "%d/%m/%Y"
+    column_style: abbreviated
+    error_rate_start: 0.18
+    error_rate_end: 0.12
+
+# ---------------------------------------------------------------------
+# Departments (15), grouped into 4 directorates
+# ---------------------------------------------------------------------
+departments:
+  - {department_id: DEP01, department_name: Programme Management,          department_category: Programme,         directorate: Programmes}
+  - {department_id: DEP02, department_name: Urban Planning and Design,     department_category: Programme,         directorate: Programmes}
+  - {department_id: DEP03, department_name: Housing and Land,              department_category: Programme,         directorate: Programmes}
+  - {department_id: DEP04, department_name: Climate Resilience,            department_category: Programme,         directorate: Programmes}
+  - {department_id: DEP05, department_name: Monitoring and Evaluation,     department_category: Programme Support, directorate: Knowledge and Innovation}
+  - {department_id: DEP06, department_name: Data and Analytics,            department_category: Programme Support, directorate: Knowledge and Innovation}
+  - {department_id: DEP07, department_name: Research and Policy,           department_category: Programme Support, directorate: Knowledge and Innovation}
+  - {department_id: DEP08, department_name: Information Technology,        department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP09, department_name: Human Resources,               department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP10, department_name: Finance,                       department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP11, department_name: Procurement,                   department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP12, department_name: Administration,                department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP13, department_name: Legal and Compliance,          department_category: Operations,        directorate: Operations and Management}
+  - {department_id: DEP14, department_name: Communications,                department_category: External Relations, directorate: External Relations}
+  - {department_id: DEP15, department_name: Partnerships and Resource Mobilisation, department_category: External Relations, directorate: External Relations}
+
+# ---------------------------------------------------------------------
+# Grades (generic international-organisation style) with weights
+#   G = General Service (locally recruited support staff)
+#   P = Professional (internationally recruited)
+#   D = Director
+# ---------------------------------------------------------------------
+grades:
+  G3: 8
+  G4: 12
+  G5: 12
+  G6: 10
+  G7: 6
+  P1: 4
+  P2: 14
+  P3: 15
+  P4: 10
+  P5: 6
+  D1: 2
+  D2: 1
+
+employment_types:
+  Fixed-term: 55
+  Continuing: 15
+  Temporary: 15
+  Consultant: 10
+  Intern: 5
+
+genders:
+  Female: 49
+  Male: 49
+  Non-binary / Not disclosed: 2
