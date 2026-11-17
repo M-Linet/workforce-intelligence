@@ -1,0 +1,79 @@
+# =====================================================================
+# Regional name pools for SYNTHETIC employee generation.
+# Names are combined at random. They do not represent real people.
+# =====================================================================
+
+# Which pool each nationality draws names from
+nationality_to_pool:
+  Kenya: east_africa
+  Ethiopia: east_africa
+  Uganda: east_africa
+  Tanzania: east_africa
+  Senegal: west_central_africa
+  Democratic Republic of the Congo: west_central_africa
+  Nigeria: west_central_africa
+  Ghana: west_central_africa
+  Cameroon: west_central_africa
+  South Africa: southern_africa
+  Zimbabwe: southern_africa
+  Switzerland: europe
+  France: europe
+  Germany: europe
+  United Kingdom: europe
+  Italy: europe
+  Netherlands: europe
+  Canada: europe
+  Bangladesh: south_asia
+  India: south_asia
+  Pakistan: south_asia
+  Thailand: southeast_asia
+  Philippines: southeast_asia
+  Indonesia: southeast_asia
+  Jordan: middle_east
+  Egypt: middle_east
+  Lebanon: middle_east
+  Panama: latin_america
+  Colombia: latin_america
+  Brazil: latin_america
+  Mexico: latin_america
+
+pools:
+  east_africa:
+    female: [Wanjiru, Achieng, Amina, Faith, Grace, Mercy, Hirut, Selam, Tigist, Nafula, Zawadi, Neema]
+    male:   [Kamau, Otieno, Brian, Kevin, Daniel, Mohamed, Abebe, Dawit, Yonas, Kiprono, Baraka, Juma]
+    last:   [Mwangi, Otieno, Kariuki, Njoroge, Ochieng, Kiplagat, Mutua, Wekesa, Tesfaye, Bekele, Haile, Girma]
+
+  west_central_africa:
+    female: [Aminata, Fatou, Awa, Mariama, Ngozi, Chiamaka, Adwoa, Esther, Grâce, Nadège, Béatrice, Yaa]
+    male:   [Moussa, Mamadou, Cheikh, Ibrahima, Chinedu, Emeka, Kwame, Kofi, Jean-Pierre, Patrice, Didier, Serge]
+    last:   [Diop, Ndiaye, Fall, Sow, Diallo, Okafor, Adeyemi, Mensah, Asante, Mbuyi, Kasongo, Ilunga]
+
+  southern_africa:
+    female: [Thandiwe, Nomvula, Lerato, Palesa, Zanele, Naledi, Ayanda, Tsitsi, Rudo, Chloe, Busisiwe, Precious]
+    male:   [Sipho, Thabo, Mandla, Bongani, Lwazi, Tendai, Tatenda, Pieter, Johan, Kagiso, Themba, Farai]
+    last:   [Dlamini, Nkosi, Mokoena, Ndlovu, Khumalo, Moyo, Sithole, van der Merwe, Botha, Naidoo, Mahlangu, Chikore]
+
+  europe:
+    female: [Anna, Sophie, Claire, Laura, Elena, Charlotte, Marie, Giulia, Hannah, Emma, Zoë, Chloé]
+    male:   [Thomas, Lukas, Pierre, Marco, James, David, Jonas, Luca, Henrik, Oliver, François, Matthias]
+    last:   [Müller, Dubois, Rossi, Smith, Schmid, Martin, Bernard, Ferrari, Jansen, Williams, Keller, Brown]
+
+  south_asia:
+    female: [Fatema, Nusrat, Tahmina, Ayesha, Priya, Ananya, Sadia, Farzana, Shreya, Rumana, Nadia, Kavya]
+    male:   [Rahim, Karim, Arif, Tanvir, Rohan, Arjun, Imran, Sabbir, Vikram, Hasan, Rafiq, Aditya]
+    last:   [Rahman, Hossain, Islam, Ahmed, Chowdhury, Sharma, Patel, Khan, Das, Sarkar, Iyer, Mehta]
+
+  southeast_asia:
+    female: [Siriporn, Nattaya, Kanya, Ploy, Maria, Angelica, Joy, Dewi, Sari, Ratna, Malai, Kristine]
+    male:   [Somchai, Anan, Niran, Krit, Jose, Mark, Paolo, Budi, Agus, Rizal, Wichai, Carlo]
+    last:   [Srisuk, Chaiyaporn, Wongsakul, Saetang, Santos, Reyes, Cruz, Bautista, Santoso, Wijaya, Pratama, Rattanakorn]
+
+  middle_east:
+    female: [Rania, Lina, Noor, Dina, Hala, Yasmin, Mariam, Salma, Reem, Layla, Nadine, Sara]
+    male:   [Omar, Ahmad, Khaled, Yousef, Tariq, Hassan, Ali, Fadi, Samir, Karim, Bilal, Rami]
+    last:   [Haddad, Khalil, Nasser, Saleh, Mansour, Abdullah, Hamdan, Farouk, Aziz, Rashid, Najjar, Qasem]
+
+  latin_america:
+    female: [María, Ana, Lucía, Valentina, Camila, Daniela, Gabriela, Isabella, Fernanda, Juliana, Paola, Sofía]
+    male:   [José, Carlos, Juan, Luis, Andrés, Diego, Miguel, Javier, Rafael, Mateo, João, Felipe]
+    last:   [González, Rodríguez, Pérez, Martínez, Gómez, López, Silva, Hernández, Díaz, Castillo, Moreno, Vargas]
