@@ -1,0 +1,111 @@
+# =====================================================================
+# Submission formats used by the SYNTHETIC DATA GENERATOR only.
+# Defines which columns each office submits (the "data contract")
+# and the abbreviated column names some offices use.
+#
+# The ETL pipeline must NOT read this file. It has its own mapping
+# config, as a real pipeline would.
+# =====================================================================
+
+# Columns each dataset submission contains, in order
+datasets:
+  employee_master:
+    - employee_id
+    - first_name
+    - last_name
+    - gender
+    - date_of_birth
+    - nationality
+    - country_of_assignment
+    - duty_station
+    - department_id
+    - job_title
+    - employment_type
+    - grade_level
+    - contract_start_date
+    - contract_end_date
+    - employment_status
+    - supervisor_id
+    - hire_date
+    - source_office
+    - last_updated
+
+  workforce_snapshot:
+    - snapshot_id
+    - employee_id
+    - reporting_month
+    - employment_status
+    - department_id
+    - office_id
+    - grade_level
+
+  movements:
+    - movement_id
+    - employee_id
+    - movement_type
+    - previous_department
+    - new_department
+    - previous_location
+    - new_location
+    - previous_grade      # extension beyond the brief: makes promotions analysable
+    - new_grade
+    - effective_date
+
+  recruitment:
+    - recruitment_id
+    - vacancy_id
+    - department_id
+    - office_id
+    - job_title
+    - vacancy_open_date
+    - vacancy_close_date
+    - application_count
+    - shortlisted_count
+    - interviewed_count
+    - offers_made
+    - candidates_hired
+    - recruitment_status
+
+# Column names used by offices with column_style: abbreviated
+abbreviations:
+  employee_id: emp_id
+  first_name: fname
+  last_name: lname
+  gender: sex
+  date_of_birth: dob
+  nationality: nat
+  country_of_assignment: ctry
+  duty_station: duty_stn
+  department_id: dept
+  job_title: title
+  employment_type: emp_type
+  grade_level: grade
+  contract_start_date: cont_start
+  contract_end_date: cont_end
+  employment_status: status
+  supervisor_id: supv_id
+  hire_date: doh
+  source_office: office
+  last_updated: upd_dt
+  snapshot_id: snap_id
+  reporting_month: rpt_month
+  office_id: office
+  movement_id: mov_id
+  movement_type: mov_type
+  previous_department: prev_dept
+  new_department: new_dept
+  previous_location: prev_loc
+  new_location: new_loc
+  previous_grade: prev_grade
+  new_grade: new_grade
+  effective_date: eff_dt
+  recruitment_id: rec_id
+  vacancy_id: vac_id
+  vacancy_open_date: open_dt
+  vacancy_close_date: close_dt
+  application_count: n_apps
+  shortlisted_count: n_short
+  interviewed_count: n_intv
+  offers_made: n_offers
+  candidates_hired: n_hired
+  recruitment_status: rec_status
