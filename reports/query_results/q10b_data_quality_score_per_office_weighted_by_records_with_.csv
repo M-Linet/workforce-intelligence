@@ -1,0 +1,11 @@
+office_id,records_received,overall_score,completeness,validity,consistency,referential_integrity,rating
+OFF10,3599.0,97.12,97.14,98.78,95.61,95.72,Poor
+OFF07,5027.0,97.81,98.15,99.04,96.04,96.8,Needs attention
+OFF03,4398.0,97.84,98.2,99.2,96.57,95.98,Needs attention
+OFF09,4937.0,97.85,98.28,99.43,96.84,95.63,Needs attention
+OFF02,5992.0,98.33,98.48,99.4,97.31,97.11,Needs attention
+OFF06,5447.0,98.64,98.86,99.43,97.63,97.89,Needs attention
+OFF08,4615.0,98.71,98.44,99.59,97.9,98.27,Needs attention
+OFF04,4038.0,99.0,99.5,99.73,98.44,97.72,Needs attention
+OFF01,13909.0,99.43,99.5,99.78,98.85,99.35,Good
+OFF05,4039.0,99.52,99.43,99.83,99.26,99.41,Good

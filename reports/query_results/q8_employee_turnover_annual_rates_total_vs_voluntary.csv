@@ -1,0 +1,4 @@
+year,months_covered,avg_headcount,all_exits,resignations,contract_expiries,retirements,terminations,turnover_rate_pct,voluntary_attrition_pct,note
+2024,2,2008.0,90,21,61,4,4,4.5,1.0,Partial year: rates not annualised
+2025,12,1948.0,511,106,350,22,33,26.2,5.4,
+2026,10,1918.0,402,97,250,37,18,21.0,5.1,Partial year: rates not annualised

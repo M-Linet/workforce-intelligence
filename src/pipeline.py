@@ -55,7 +55,8 @@ def run(triggered_by: str = "manual") -> int:
         # 2. TRANSFORM + VALIDATE
         results = Validator(engine).run()
         for name, r in results.items():
-            msg = f"{name}: " + ", ".join(f"{k} {v}" for k, v in sorted(r.categories.items()))
+            msg = f"{name}: " + (", ".join(f"{k} {v}" for k, v in sorted(r.categories.items()))
+                                 or "nothing new")
             log.info(msg)
             log_event(engine, run_id, "validate", msg, rows_affected=sum(r.categories.values()))
 

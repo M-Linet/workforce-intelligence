@@ -1,0 +1,26 @@
+region,employment_type,active_employees,pct_within_region
+Africa,Fixed-term,707,63.4
+Africa,Continuing,237,21.3
+Africa,Temporary,93,8.3
+Africa,Consultant,63,5.7
+Africa,Intern,15,1.3
+Asia-Pacific,Fixed-term,231,65.1
+Asia-Pacific,Continuing,82,23.1
+Asia-Pacific,Temporary,20,5.6
+Asia-Pacific,Consultant,18,5.1
+Asia-Pacific,Intern,4,1.1
+Europe,Fixed-term,92,66.7
+Europe,Continuing,27,19.6
+Europe,Consultant,9,6.5
+Europe,Temporary,8,5.8
+Europe,Intern,2,1.4
+Latin America and Caribbean,Fixed-term,119,67.2
+Latin America and Caribbean,Continuing,40,22.6
+Latin America and Caribbean,Temporary,10,5.6
+Latin America and Caribbean,Consultant,7,4.0
+Latin America and Caribbean,Intern,1,0.6
+Middle East,Fixed-term,108,65.5
+Middle East,Continuing,25,15.2
+Middle East,Temporary,15,9.1
+Middle East,Consultant,14,8.5
+Middle East,Intern,3,1.8

@@ -1,0 +1,6 @@
+office_id,dataset,reporting_month,file_name,status,error_message
+OFF03,recruitment,2025-04,OFF03_recruitment_2025-04_resubmitted.csv,duplicate,Identical content already received
+OFF05,workforce_snapshot,2026-01,OFF05_workforce_snapshot_2026-01.xlsx,empty,"0 bytes: no header, likely a failed upload"
+OFF05,recruitment,2026-05,OFF05_recruitment_2026-05.xlsx,unreadable,BadZipFile: File is not a zip file
+OFF09,workforce_snapshot,2026-06,OFF09_workforce_snapshot_2026-06_resubmitted.xlsx,duplicate,Identical content already received
+OFF10,workforce_snapshot,2025-05,OFF10_workforce_snapshot_2025-05.csv,unreadable,UnicodeDecodeError: 'utf-8' codec can't decode byte 0xd6 in position 0: invalid continuation byte

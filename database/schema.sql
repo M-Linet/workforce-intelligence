@@ -21,6 +21,7 @@ COMMENT ON SCHEMA staging IS 'Landing zone: office submissions as extracted, bef
 COMMENT ON SCHEMA dw      IS 'Data warehouse: validated data in a star schema for reporting';
 COMMENT ON SCHEMA audit   IS 'Pipeline audit trail: file registry, run log, data-quality issues';
 
+
 -- ---------------------------------------------------------------------
 -- 2. DIMENSION TABLES (dw)
 --    Each dimension has:
@@ -208,47 +209,57 @@ CREATE TABLE IF NOT EXISTS audit.rejected_records (
 );
 CREATE INDEX IF NOT EXISTS ix_rejected_dataset ON audit.rejected_records (dataset, category);
 COMMENT ON TABLE audit.rejected_records IS 'Records held back for manual review or rejected, with reasons and the raw values.';
--- 4. FACT TABLES (dw): each states its GRAIN and enforces it with UNIQUE
+
+
+-- ---------------------------------------------------------------------
+-- 4. FACT TABLES (dw)
+--    Each fact table states its GRAIN (what one row means) and enforces it
+--    with a UNIQUE constraint. Every row records its source file (lineage).
+-- ---------------------------------------------------------------------
 
 -- GRAIN: one employee in one reporting month (status at month end)
 CREATE TABLE IF NOT EXISTS dw.fact_workforce_snapshot (
-    snapshot_key       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    snapshot_id        VARCHAR(20) NOT NULL UNIQUE,
-    employee_key       INTEGER  NOT NULL REFERENCES dw.dim_employee (employee_key),
-    month_end_date_key INTEGER  NOT NULL REFERENCES dw.dim_date (date_key),
-    reporting_month    CHAR(7)  NOT NULL CHECK (reporting_month ~ '^[0-9]{4}-[0-9]{2}$'),
-    department_key     SMALLINT REFERENCES dw.dim_department (department_key),
-    location_key       SMALLINT NOT NULL REFERENCES dw.dim_location (location_key),
-    grade_level        VARCHAR(10) NOT NULL CHECK (grade_level IN
-                       ('G3','G4','G5','G6','G7','P1','P2','P3','P4','P5','D1','D2','Non-staff')),
-    employment_status  VARCHAR(20) NOT NULL CHECK (employment_status IN ('Active', 'Separated')),
-    headcount          SMALLINT GENERATED ALWAYS AS
-                       (CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END) STORED,
-    source_file_id     BIGINT REFERENCES audit.etl_file_registry (file_id),
-    loaded_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (employee_key, reporting_month)
+    snapshot_key      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    snapshot_id       VARCHAR(20) NOT NULL UNIQUE,              -- natural key from the source
+    employee_key      INTEGER  NOT NULL REFERENCES dw.dim_employee (employee_key),
+    month_end_date_key INTEGER NOT NULL REFERENCES dw.dim_date (date_key),
+    reporting_month   CHAR(7)  NOT NULL CHECK (reporting_month ~ '^[0-9]{4}-[0-9]{2}$'),
+    department_key    SMALLINT REFERENCES dw.dim_department (department_key),   -- NULL = unassigned
+    location_key      SMALLINT NOT NULL REFERENCES dw.dim_location (location_key),
+    grade_level       VARCHAR(10) NOT NULL
+                      CHECK (grade_level IN ('G3','G4','G5','G6','G7','P1','P2','P3','P4','P5','D1','D2','Non-staff')),
+    employment_status VARCHAR(20) NOT NULL CHECK (employment_status IN ('Active', 'Separated')),
+    -- 1 if counted in month-end headcount, else 0: makes headcount a simple SUM
+    headcount         SMALLINT GENERATED ALWAYS AS
+                      (CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END) STORED,
+    source_file_id    BIGINT REFERENCES audit.etl_file_registry (file_id),
+    loaded_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (employee_key, reporting_month)                       -- enforces the grain
 );
 CREATE INDEX IF NOT EXISTS ix_fws_month      ON dw.fact_workforce_snapshot (reporting_month);
 CREATE INDEX IF NOT EXISTS ix_fws_department ON dw.fact_workforce_snapshot (department_key);
 CREATE INDEX IF NOT EXISTS ix_fws_location   ON dw.fact_workforce_snapshot (location_key);
+COMMENT ON TABLE dw.fact_workforce_snapshot IS 'GRAIN: one employee per reporting month. Headcount = SUM(headcount).';
+
 -- GRAIN: one HR event for one employee on one date
 CREATE TABLE IF NOT EXISTS dw.fact_employee_movement (
     movement_key             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     movement_id              VARCHAR(20) NOT NULL UNIQUE,
-    employee_key             INTEGER NOT NULL REFERENCES dw.dim_employee (employee_key),
-    effective_date_key       INTEGER NOT NULL REFERENCES dw.dim_date (date_key),
-    effective_date           DATE    NOT NULL,
-    movement_type            VARCHAR(30) NOT NULL CHECK (movement_type IN
-                             ('Promotion', 'Transfer', 'Contract renewal', 'Contract expiry',
-                              'Resignation', 'Retirement', 'Termination')),
+    employee_key             INTEGER  NOT NULL REFERENCES dw.dim_employee (employee_key),
+    effective_date_key       INTEGER  NOT NULL REFERENCES dw.dim_date (date_key),
+    effective_date           DATE     NOT NULL,
+    movement_type            VARCHAR(30) NOT NULL
+                             CHECK (movement_type IN ('Promotion', 'Transfer', 'Contract renewal', 'Contract expiry',
+                                                      'Resignation', 'Retirement', 'Termination')),
     previous_department_key  SMALLINT REFERENCES dw.dim_department (department_key),
     new_department_key       SMALLINT REFERENCES dw.dim_department (department_key),
     previous_location_key    SMALLINT REFERENCES dw.dim_location (location_key),
     new_location_key         SMALLINT REFERENCES dw.dim_location (location_key),
     previous_grade           VARCHAR(10),
     new_grade                VARCHAR(10),
-    is_exit                  BOOLEAN GENERATED ALWAYS AS (movement_type IN
-                             ('Contract expiry', 'Resignation', 'Retirement', 'Termination')) STORED,
+    -- Classification used by turnover measures
+    is_exit                  BOOLEAN GENERATED ALWAYS AS
+                             (movement_type IN ('Contract expiry', 'Resignation', 'Retirement', 'Termination')) STORED,
     is_voluntary_exit        BOOLEAN GENERATED ALWAYS AS (movement_type = 'Resignation') STORED,
     source_file_id           BIGINT REFERENCES audit.etl_file_registry (file_id),
     loaded_at                TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -256,11 +267,13 @@ CREATE TABLE IF NOT EXISTS dw.fact_employee_movement (
 CREATE INDEX IF NOT EXISTS ix_fem_employee ON dw.fact_employee_movement (employee_key);
 CREATE INDEX IF NOT EXISTS ix_fem_date     ON dw.fact_employee_movement (effective_date);
 CREATE INDEX IF NOT EXISTS ix_fem_type     ON dw.fact_employee_movement (movement_type);
+COMMENT ON TABLE dw.fact_employee_movement IS 'GRAIN: one movement event per employee per effective date.';
+
 -- GRAIN: one recruitment process (one advertisement round of a vacancy)
 CREATE TABLE IF NOT EXISTS dw.fact_recruitment (
     recruitment_key     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     recruitment_id      VARCHAR(20) NOT NULL UNIQUE,
-    vacancy_id          VARCHAR(20) NOT NULL,
+    vacancy_id          VARCHAR(20) NOT NULL,                    -- shared by re-advertised rounds
     department_key      SMALLINT REFERENCES dw.dim_department (department_key),
     location_key        SMALLINT NOT NULL REFERENCES dw.dim_location (location_key),
     job_title           VARCHAR(150),
@@ -273,21 +286,23 @@ CREATE TABLE IF NOT EXISTS dw.fact_recruitment (
     interviewed_count   INTEGER NOT NULL CHECK (interviewed_count >= 0),
     offers_made         INTEGER NOT NULL CHECK (offers_made >= 0),
     candidates_hired    INTEGER NOT NULL CHECK (candidates_hired >= 0),
-    recruitment_status  VARCHAR(20) NOT NULL CHECK (recruitment_status IN
-                        ('Filled', 'Unsuccessful', 'Cancelled', 'Open')),
+    recruitment_status  VARCHAR(20) NOT NULL
+                        CHECK (recruitment_status IN ('Filled', 'Unsuccessful', 'Cancelled', 'Open')),
     days_to_fill        INTEGER GENERATED ALWAYS AS (vacancy_close_date - vacancy_open_date) STORED,
     source_file_id      BIGINT REFERENCES audit.etl_file_registry (file_id),
     loaded_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- The recruitment funnel can only narrow
     CHECK (application_count >= shortlisted_count
            AND shortlisted_count >= interviewed_count
            AND interviewed_count >= offers_made
            AND offers_made >= candidates_hired),
-    CHECK (vacancy_close_date IS NULL OR vacancy_open_date IS NULL
-           OR vacancy_close_date >= vacancy_open_date)
+    CHECK (vacancy_close_date IS NULL OR vacancy_open_date IS NULL OR vacancy_close_date >= vacancy_open_date)
 );
 CREATE INDEX IF NOT EXISTS ix_frec_vacancy  ON dw.fact_recruitment (vacancy_id);
 CREATE INDEX IF NOT EXISTS ix_frec_location ON dw.fact_recruitment (location_key);
 CREATE INDEX IF NOT EXISTS ix_frec_status   ON dw.fact_recruitment (recruitment_status);
+COMMENT ON TABLE dw.fact_recruitment IS 'GRAIN: one recruitment process (advertisement round). vacancy_id groups rounds of the same post.';
+
 -- 5. STAGING TABLES (staging)
 --    Raw values exactly as submitted, every column TEXT, after column names
 --    are standardised. Nothing is converted or lost before validation.
@@ -304,6 +319,7 @@ CREATE TABLE IF NOT EXISTS staging.employee_master (
     staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (file_id, source_row)
 );
+
 CREATE TABLE IF NOT EXISTS staging.workforce_snapshot (
     file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
     source_row INTEGER NOT NULL,
@@ -323,6 +339,7 @@ CREATE TABLE IF NOT EXISTS staging.movements (
     staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (file_id, source_row)
 );
+
 CREATE TABLE IF NOT EXISTS staging.recruitment (
     file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
     source_row INTEGER NOT NULL,
@@ -349,3 +366,12 @@ CREATE TABLE IF NOT EXISTS staging.offices (
     staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (file_id, source_row)
 );
+
+
+-- ---------------------------------------------------------------------
+-- 6. CHANGES AFTER FIRST RELEASE
+--    Applied with ALTER ... IF NOT EXISTS so existing databases upgrade safely.
+-- ---------------------------------------------------------------------
+-- Row number of the record inside its file: lets data-quality scores count
+-- affected RECORDS exactly, and lets anyone trace an issue to "row 37 of file X".
+ALTER TABLE audit.data_quality_issues ADD COLUMN IF NOT EXISTS source_row INTEGER;

@@ -74,7 +74,8 @@ class RecordCheck:
     def add(self, rule_id: str, column: str | None, original=None, corrected=None):
         dimension, severity, action, _ = RULES[rule_id]
         self.issues.append({
-            "file_id": self.file_id, "office_id": self.office_id, "dataset": self.dataset,
+            "file_id": self.file_id, "source_row": self.source_row,
+            "office_id": self.office_id, "dataset": self.dataset,
             "record_key": self.record_key, "column_name": column, "rule_id": rule_id,
             "dimension": dimension, "severity": severity, "action_taken": action,
             "original_value": None if original is None else str(original),

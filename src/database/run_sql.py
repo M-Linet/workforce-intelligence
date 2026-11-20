@@ -25,7 +25,10 @@ def run_sql_file(path, engine=None) -> None:
     sql = path.read_text(encoding="utf-8")
     engine = engine or get_engine()
     with engine.begin() as conn:          # begin() = commit on success, roll back on error
-        conn.exec_driver_sql(sql)
+        # Hand the file straight to the driver's cursor. Unlike exec_driver_sql, a plain
+        # cursor.execute() with no parameters does not treat '%' (as in LIKE 'G%') as a
+        # placeholder. It still runs inside the same transaction.
+        conn.connection.cursor().execute(sql)
     print(f"OK  {path.relative_to(PROJECT_ROOT)}")
 
 

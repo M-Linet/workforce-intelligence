@@ -1,0 +1,17 @@
+department,processes,filled,unsuccessful,avg_days_to_hire,avg_applications,success_rate_pct,days_vs_org_average,speed_band
+Unassigned,7,2,1,114.0,84.0,66.7,39.0,Slower than average
+Legal and Compliance,58,39,11,80.0,80.0,78.0,5.0,Around average
+Monitoring and Evaluation,57,36,10,79.0,79.0,78.3,4.0,Around average
+Urban Planning and Design,96,64,7,79.0,88.0,90.1,4.0,Around average
+Research and Policy,64,41,9,76.0,79.0,82.0,1.0,Around average
+Administration,45,34,4,75.0,74.0,89.5,0.0,Around average
+Information Technology,54,46,5,74.0,81.0,90.2,-1.0,Around average
+Procurement,51,36,6,73.0,69.0,85.7,-2.0,Around average
+Housing and Land,106,73,14,73.0,88.0,83.9,-2.0,Around average
+Communications,45,25,8,72.0,79.0,75.8,-3.0,Around average
+Data and Analytics,58,44,5,71.0,71.0,89.8,-4.0,Around average
+Finance,53,36,8,71.0,94.0,81.8,-4.0,Around average
+Climate Resilience,112,77,13,69.0,74.0,85.6,-6.0,Around average
+Programme Management,89,59,14,67.0,71.0,80.8,-8.0,Faster than average
+Partnerships and Resource Mobilisation,30,20,4,66.0,74.0,83.3,-9.0,Faster than average
+Human Resources,40,31,5,59.0,75.0,86.1,-16.0,Faster than average

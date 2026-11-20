@@ -439,6 +439,6 @@ class Validator:
         estimated = master.loadable[(master.loadable["employment_status"] == "Separated")
                                     & ~master.loadable["employee_id"].isin(exits)]
         for _, r in estimated.iterrows():
-            chk = RecordCheck("employee_master", r["source_file_id"], 0, r["source_office"], r["employee_id"])
+            chk = RecordCheck("employee_master", r["source_file_id"], None, r["source_office"], r["employee_id"])
             chk.add("EXIT_DATE_ESTIMATED", "exit_date", None, r["exit_date"])
             master.issues.extend(chk.issues)

@@ -1,0 +1,7 @@
+dataset,records_received,manual_review,rejected,loaded,pct_loaded
+departments,15,0,0,15,100.0
+employee_master,3015,14,20,2981,98.87
+movements,2756,82,26,2648,96.08
+offices,10,0,0,10,100.0
+recruitment,1005,34,6,965,96.02
+workforce_snapshot,49225,1172,463,47590,96.68

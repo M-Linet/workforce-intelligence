@@ -1,0 +1,25 @@
+issue_type,detected,missed,in unusable file,injected,detection_rate_pct
+status_variant,866,0,4,870,100.0
+unknown_employee,679,0,3,682,100.0
+missing_department,526,0,1,527,100.0
+invalid_grade,462,0,5,467,100.0
+duplicate_row,341,0,1,342,100.0
+unknown_department_code,294,0,3,297,100.0
+missing_primary_key,156,0,1,157,100.0
+alternative_date_format,61,2,0,63,96.8
+movement_type_variant,51,0,0,51,100.0
+impossible_date,30,0,0,30,100.0
+invalid_number,27,0,0,27,100.0
+extra_whitespace,23,0,0,23,100.0
+country_variant,21,0,0,21,100.0
+date_sequence_error,19,0,0,19,100.0
+employment_type_variant,15,0,0,15,100.0
+cross_file_duplicate,12,0,0,12,100.0
+gender_variant,12,0,0,12,100.0
+missing_recruitment_date,11,0,0,11,100.0
+stale_duplicate,7,0,0,7,100.0
+department_name_not_code,7,0,0,7,100.0
+missing_employment_type,4,0,0,4,100.0
+corrupted_file,2,0,0,2,100.0
+resubmitted_file,2,0,0,2,100.0
+zero_byte_file,1,0,0,1,100.0

@@ -1,0 +1,11 @@
+office_name,issues,completeness,uniqueness,validity,consistency,referential_integrity,serious,rank_most_issues
+Dhaka Country Office,557,100,49,48,199,161,185,1
+Panama City Regional Office,537,90,47,28,156,216,236,2
+Kinshasa Country Office,523,107,59,45,158,154,176,3
+Addis Ababa Regional Office,502,93,39,36,161,173,191,4
+Dakar Regional Office,479,82,33,35,151,178,202,5
+Nairobi Headquarters,395,71,42,31,160,91,117,6
+Bangkok Regional Office,373,65,33,31,129,115,136,7
+Amman Regional Office,299,73,30,19,97,80,81,8
+Johannesburg Country Office,203,21,16,11,63,92,94,9
+Geneva Liaison Office,99,24,13,8,30,24,35,10

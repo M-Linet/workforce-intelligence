@@ -142,9 +142,9 @@ def load_all(conn, run_id: int, results: dict) -> dict:
     # ---- Audit: issues and held records ------------------------------------------
     issues = [dict(i, run_id=run_id) for r in results.values() for i in r.issues]
     n["issues"] = upsert(conn, """
-        INSERT INTO audit.data_quality_issues (run_id, file_id, office_id, dataset, record_key, column_name,
-            rule_id, dimension, severity, action_taken, original_value, corrected_value)
-        VALUES (:run_id, :file_id, :office_id, :dataset, :record_key, :column_name,
+        INSERT INTO audit.data_quality_issues (run_id, file_id, source_row, office_id, dataset, record_key,
+            column_name, rule_id, dimension, severity, action_taken, original_value, corrected_value)
+        VALUES (:run_id, :file_id, :source_row, :office_id, :dataset, :record_key, :column_name,
             :rule_id, :dimension, :severity, :action_taken, :original_value, :corrected_value)""", issues)
 
     held = [{"run_id": run_id, **h, "raw_record": json.dumps(h["raw_record"], default=str)}
