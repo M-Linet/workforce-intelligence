@@ -107,3 +107,184 @@ COMMENT ON TABLE dw.dim_employee IS 'One row per employee, CURRENT state (Type 1
 CREATE INDEX IF NOT EXISTS ix_dim_employee_department ON dw.dim_employee (current_department_key);
 CREATE INDEX IF NOT EXISTS ix_dim_employee_location   ON dw.dim_employee (current_location_key);
 CREATE INDEX IF NOT EXISTS ix_dim_employee_supervisor ON dw.dim_employee (supervisor_id);
+
+
+-- ---------------------------------------------------------------------
+-- 3. AUDIT TABLES (audit)
+--    Created before the fact tables, because every fact row records the
+--    file it came from (data lineage): audit.etl_file_registry.file_id
+-- ---------------------------------------------------------------------
+
+-- One row per pipeline run
+CREATE TABLE IF NOT EXISTS audit.etl_run (
+    run_id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    started_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at       TIMESTAMPTZ,
+    status            VARCHAR(20) NOT NULL DEFAULT 'running'
+                      CHECK (status IN ('running', 'success', 'failed')),
+    triggered_by      VARCHAR(50) NOT NULL DEFAULT 'manual',   -- 'manual' or 'scheduler'
+    files_found       INTEGER,
+    files_processed   INTEGER,
+    records_loaded    INTEGER,
+    records_rejected  INTEGER,
+    error_message     TEXT,
+    CHECK (finished_at IS NULL OR finished_at >= started_at)
+);
+COMMENT ON TABLE audit.etl_run IS 'One row per pipeline run, with overall outcome and counts.';
+
+-- Step-by-step log of what each run did
+CREATE TABLE IF NOT EXISTS audit.etl_audit_log (
+    log_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    run_id         BIGINT NOT NULL REFERENCES audit.etl_run (run_id),
+    logged_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    level          VARCHAR(10) NOT NULL CHECK (level IN ('DEBUG', 'INFO', 'WARNING', 'ERROR')),
+    stage          VARCHAR(20) NOT NULL CHECK (stage IN ('extract', 'transform', 'validate', 'load', 'report')),
+    message        TEXT NOT NULL,
+    rows_affected  INTEGER
+);
+CREATE INDEX IF NOT EXISTS ix_audit_log_run ON audit.etl_audit_log (run_id);
+COMMENT ON TABLE audit.etl_audit_log IS 'Step-level audit trail: every significant action of every run.';
+
+-- One row per file the pipeline has seen
+CREATE TABLE IF NOT EXISTS audit.etl_file_registry (
+    file_id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    run_id            BIGINT NOT NULL REFERENCES audit.etl_run (run_id),
+    file_path         TEXT NOT NULL,                 -- relative to data/raw/
+    file_name         TEXT NOT NULL,
+    office_id         VARCHAR(10),
+    dataset           VARCHAR(30),
+    reporting_month   CHAR(7),
+    file_hash         CHAR(64) NOT NULL,             -- SHA-256 of the file's bytes
+    file_size_bytes   BIGINT NOT NULL CHECK (file_size_bytes >= 0),
+    row_count         INTEGER,
+    status            VARCHAR(20) NOT NULL
+                      CHECK (status IN ('received', 'processed', 'duplicate', 'empty', 'unreadable', 'failed')),
+    received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    processed_at      TIMESTAMPTZ,
+    error_message     TEXT
+);
+-- The same content may be SEEN many times (re-sent files are logged as 'duplicate'),
+-- but may be PROCESSED only once. A partial unique index enforces exactly that.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_file_registry_processed_hash
+    ON audit.etl_file_registry (file_hash) WHERE status = 'processed';
+CREATE INDEX IF NOT EXISTS ix_file_registry_office_month
+    ON audit.etl_file_registry (office_id, reporting_month);
+COMMENT ON TABLE audit.etl_file_registry IS 'Every file seen by the pipeline, its SHA-256 hash and processing status.';
+
+-- One row per data-quality problem detected
+CREATE TABLE IF NOT EXISTS audit.data_quality_issues (
+    issue_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    run_id           BIGINT NOT NULL REFERENCES audit.etl_run (run_id),
+    file_id          BIGINT REFERENCES audit.etl_file_registry (file_id),
+    office_id        VARCHAR(10),
+    dataset          VARCHAR(30) NOT NULL,
+    record_key       VARCHAR(50),                   -- e.g. employee_id; NULL for file-level issues
+    column_name      VARCHAR(100),
+    rule_id          VARCHAR(50) NOT NULL,           -- e.g. 'DATE_PARSE', 'REF_DEPARTMENT'
+    dimension        VARCHAR(30) NOT NULL
+                     CHECK (dimension IN ('completeness', 'uniqueness', 'validity', 'consistency', 'referential_integrity')),
+    severity         VARCHAR(10) NOT NULL CHECK (severity IN ('info', 'warning', 'error', 'critical')),
+    action_taken     VARCHAR(20) NOT NULL
+                     CHECK (action_taken IN ('corrected', 'manual_review', 'rejected', 'flagged')),
+    original_value   TEXT,
+    corrected_value  TEXT,
+    detected_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_dq_issues_office_dataset ON audit.data_quality_issues (office_id, dataset);
+CREATE INDEX IF NOT EXISTS ix_dq_issues_rule ON audit.data_quality_issues (rule_id);
+COMMENT ON TABLE audit.data_quality_issues IS 'Every data-quality problem detected, the rule that caught it and the action taken.';
+
+-- Records that could not be loaded, kept for review (never silently dropped)
+CREATE TABLE IF NOT EXISTS audit.rejected_records (
+    rejected_id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    run_id        BIGINT NOT NULL REFERENCES audit.etl_run (run_id),
+    file_id       BIGINT REFERENCES audit.etl_file_registry (file_id),
+    dataset       VARCHAR(30) NOT NULL,
+    record_key    VARCHAR(50),
+    category      VARCHAR(20) NOT NULL CHECK (category IN ('manual_review', 'rejected')),
+    reasons       TEXT[] NOT NULL,                   -- every rule the record failed
+    raw_record    JSONB NOT NULL,                    -- the record exactly as submitted
+    rejected_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_rejected_dataset ON audit.rejected_records (dataset, category);
+COMMENT ON TABLE audit.rejected_records IS 'Records held back for manual review or rejected, with reasons and the raw values.';
+-- 4. FACT TABLES (dw): each states its GRAIN and enforces it with UNIQUE
+
+-- GRAIN: one employee in one reporting month (status at month end)
+CREATE TABLE IF NOT EXISTS dw.fact_workforce_snapshot (
+    snapshot_key       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    snapshot_id        VARCHAR(20) NOT NULL UNIQUE,
+    employee_key       INTEGER  NOT NULL REFERENCES dw.dim_employee (employee_key),
+    month_end_date_key INTEGER  NOT NULL REFERENCES dw.dim_date (date_key),
+    reporting_month    CHAR(7)  NOT NULL CHECK (reporting_month ~ '^[0-9]{4}-[0-9]{2}$'),
+    department_key     SMALLINT REFERENCES dw.dim_department (department_key),
+    location_key       SMALLINT NOT NULL REFERENCES dw.dim_location (location_key),
+    grade_level        VARCHAR(10) NOT NULL CHECK (grade_level IN
+                       ('G3','G4','G5','G6','G7','P1','P2','P3','P4','P5','D1','D2','Non-staff')),
+    employment_status  VARCHAR(20) NOT NULL CHECK (employment_status IN ('Active', 'Separated')),
+    headcount          SMALLINT GENERATED ALWAYS AS
+                       (CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END) STORED,
+    source_file_id     BIGINT REFERENCES audit.etl_file_registry (file_id),
+    loaded_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (employee_key, reporting_month)
+);
+CREATE INDEX IF NOT EXISTS ix_fws_month      ON dw.fact_workforce_snapshot (reporting_month);
+CREATE INDEX IF NOT EXISTS ix_fws_department ON dw.fact_workforce_snapshot (department_key);
+CREATE INDEX IF NOT EXISTS ix_fws_location   ON dw.fact_workforce_snapshot (location_key);
+-- GRAIN: one HR event for one employee on one date
+CREATE TABLE IF NOT EXISTS dw.fact_employee_movement (
+    movement_key             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    movement_id              VARCHAR(20) NOT NULL UNIQUE,
+    employee_key             INTEGER NOT NULL REFERENCES dw.dim_employee (employee_key),
+    effective_date_key       INTEGER NOT NULL REFERENCES dw.dim_date (date_key),
+    effective_date           DATE    NOT NULL,
+    movement_type            VARCHAR(30) NOT NULL CHECK (movement_type IN
+                             ('Promotion', 'Transfer', 'Contract renewal', 'Contract expiry',
+                              'Resignation', 'Retirement', 'Termination')),
+    previous_department_key  SMALLINT REFERENCES dw.dim_department (department_key),
+    new_department_key       SMALLINT REFERENCES dw.dim_department (department_key),
+    previous_location_key    SMALLINT REFERENCES dw.dim_location (location_key),
+    new_location_key         SMALLINT REFERENCES dw.dim_location (location_key),
+    previous_grade           VARCHAR(10),
+    new_grade                VARCHAR(10),
+    is_exit                  BOOLEAN GENERATED ALWAYS AS (movement_type IN
+                             ('Contract expiry', 'Resignation', 'Retirement', 'Termination')) STORED,
+    is_voluntary_exit        BOOLEAN GENERATED ALWAYS AS (movement_type = 'Resignation') STORED,
+    source_file_id           BIGINT REFERENCES audit.etl_file_registry (file_id),
+    loaded_at                TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_fem_employee ON dw.fact_employee_movement (employee_key);
+CREATE INDEX IF NOT EXISTS ix_fem_date     ON dw.fact_employee_movement (effective_date);
+CREATE INDEX IF NOT EXISTS ix_fem_type     ON dw.fact_employee_movement (movement_type);
+-- GRAIN: one recruitment process (one advertisement round of a vacancy)
+CREATE TABLE IF NOT EXISTS dw.fact_recruitment (
+    recruitment_key     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    recruitment_id      VARCHAR(20) NOT NULL UNIQUE,
+    vacancy_id          VARCHAR(20) NOT NULL,
+    department_key      SMALLINT REFERENCES dw.dim_department (department_key),
+    location_key        SMALLINT NOT NULL REFERENCES dw.dim_location (location_key),
+    job_title           VARCHAR(150),
+    open_date_key       INTEGER REFERENCES dw.dim_date (date_key),
+    close_date_key      INTEGER REFERENCES dw.dim_date (date_key),
+    vacancy_open_date   DATE,
+    vacancy_close_date  DATE,
+    application_count   INTEGER NOT NULL CHECK (application_count >= 0),
+    shortlisted_count   INTEGER NOT NULL CHECK (shortlisted_count >= 0),
+    interviewed_count   INTEGER NOT NULL CHECK (interviewed_count >= 0),
+    offers_made         INTEGER NOT NULL CHECK (offers_made >= 0),
+    candidates_hired    INTEGER NOT NULL CHECK (candidates_hired >= 0),
+    recruitment_status  VARCHAR(20) NOT NULL CHECK (recruitment_status IN
+                        ('Filled', 'Unsuccessful', 'Cancelled', 'Open')),
+    days_to_fill        INTEGER GENERATED ALWAYS AS (vacancy_close_date - vacancy_open_date) STORED,
+    source_file_id      BIGINT REFERENCES audit.etl_file_registry (file_id),
+    loaded_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (application_count >= shortlisted_count
+           AND shortlisted_count >= interviewed_count
+           AND interviewed_count >= offers_made
+           AND offers_made >= candidates_hired),
+    CHECK (vacancy_close_date IS NULL OR vacancy_open_date IS NULL
+           OR vacancy_close_date >= vacancy_open_date)
+);
+CREATE INDEX IF NOT EXISTS ix_frec_vacancy  ON dw.fact_recruitment (vacancy_id);
+CREATE INDEX IF NOT EXISTS ix_frec_location ON dw.fact_recruitment (location_key);
+CREATE INDEX IF NOT EXISTS ix_frec_status   ON dw.fact_recruitment (recruitment_status);
