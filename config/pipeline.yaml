@@ -1,0 +1,84 @@
+# =====================================================================
+# ETL PIPELINE configuration.
+# Maintained by the HQ data team. Independent of the synthetic data
+# generator: the pipeline never reads the generator's config files.
+# =====================================================================
+
+# How submitted files are named: <OFFICE>_<DATASET>_<YYYY-MM>[_anything].<csv|xlsx>
+file_name_pattern: '^(?P<office_id>OFF\d{2})_(?P<dataset>employee_master|workforce_snapshot|movements|recruitment)_(?P<reporting_month>\d{4}-\d{2})(?:_[A-Za-z0-9]+)?\.(?:csv|xlsx)$'
+
+# HQ reference files (fixed names)
+reference_files:
+  departments: 'HQ/departments.xlsx'
+  offices: 'HQ/offices.csv'
+
+# Standard columns expected in each dataset (the reporting template)
+expected_columns:
+  employee_master: [employee_id, first_name, last_name, gender, date_of_birth, nationality,
+                    country_of_assignment, duty_station, department_id, job_title, employment_type,
+                    grade_level, contract_start_date, contract_end_date, employment_status,
+                    supervisor_id, hire_date, source_office, last_updated]
+  workforce_snapshot: [snapshot_id, employee_id, reporting_month, employment_status,
+                       department_id, office_id, grade_level]
+  movements: [movement_id, employee_id, movement_type, previous_department, new_department,
+              previous_location, new_location, previous_grade, new_grade, effective_date]
+  recruitment: [recruitment_id, vacancy_id, department_id, office_id, job_title,
+                vacancy_open_date, vacancy_close_date, application_count, shortlisted_count,
+                interviewed_count, offers_made, candidates_hired, recruitment_status]
+  departments: [department_id, department_name, department_category, directorate]
+  offices: [office_id, office_name, country, region, city, office_type]
+
+# Known alternative column names, AFTER basic normalisation
+# (lower case, spaces and dashes -> underscores). "Employee Id" therefore
+# needs no alias: it normalises to employee_id by itself.
+column_aliases:
+  common:
+    emp_id: employee_id
+    dept: department_id
+    status: employment_status
+    grade: grade_level
+    title: job_title
+  employee_master:
+    fname: first_name
+    lname: last_name
+    sex: gender
+    dob: date_of_birth
+    nat: nationality
+    ctry: country_of_assignment
+    duty_stn: duty_station
+    emp_type: employment_type
+    cont_start: contract_start_date
+    cont_end: contract_end_date
+    supv_id: supervisor_id
+    doh: hire_date
+    office: source_office
+    upd_dt: last_updated
+  workforce_snapshot:
+    snap_id: snapshot_id
+    rpt_month: reporting_month
+    office: office_id
+  movements:
+    mov_id: movement_id
+    mov_type: movement_type
+    prev_dept: previous_department
+    new_dept: new_department
+    prev_loc: previous_location
+    new_loc: new_location
+    prev_grade: previous_grade
+    eff_dt: effective_date
+  recruitment:
+    rec_id: recruitment_id
+    vac_id: vacancy_id
+    office: office_id
+    open_dt: vacancy_open_date
+    close_dt: vacancy_close_date
+    n_apps: application_count
+    n_short: shortlisted_count
+    n_intv: interviewed_count
+    n_offers: offers_made
+    n_hired: candidates_hired
+    rec_status: recruitment_status
+
+# A file is treated as unreadable if fewer than this share of its columns
+# can be matched to the template (protects against garbage that "parses")
+min_recognised_column_share: 0.6

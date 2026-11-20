@@ -1,0 +1,84 @@
+# =====================================================================
+# Standardisation and validation rules used by the ETL pipeline.
+# Maintained by the HQ data team. Every automatic correction the pipeline
+# makes is driven by this file, so each one is documented and reviewable.
+# =====================================================================
+
+# Each office's registered date convention (from its reporting template).
+# Dates that do not match are tried against unambiguous alternatives.
+office_date_formats:
+  OFF01: '%Y-%m-%d'
+  OFF02: '%d/%m/%Y'
+  OFF03: '%d/%m/%Y'
+  OFF04: '%Y/%m/%d'
+  OFF05: '%d.%m.%Y'
+  OFF06: '%d-%b-%Y'
+  OFF07: '%d/%m/%Y'
+  OFF08: '%d/%m/%Y'
+  OFF09: '%m/%d/%Y'
+  OFF10: '%d/%m/%Y'
+
+# Tried, in order, when a date does not match the office's own format.
+# All are unambiguous EXCEPT the day/month swap, which is tried last.
+fallback_date_formats: ['%Y-%m-%d', '%d %B %Y', '%B %d, %Y', '%Y%m%d', '%d-%m-%y']
+swapped_date_formats: {'%d/%m/%Y': '%m/%d/%Y', '%m/%d/%Y': '%d/%m/%Y'}
+
+# Reporting-month formats seen in workforce returns
+month_formats: ['%Y-%m', '%b-%Y', '%m/%Y']
+
+# Controlled vocabularies: canonical value -> accepted variants (compared case-insensitively)
+value_maps:
+  gender:
+    Female: [female, f, woman]
+    Male: [male, m, man]
+    Non-binary / Not disclosed: [non-binary / not disclosed, not disclosed, other, x, prefer not to say]
+  employment_type:
+    Fixed-term: [fixed-term, fixed term, ft, fixed term appointment]
+    Continuing: [continuing, permanent]
+    Temporary: [temporary, temp, ta]
+    Consultant: [consultant, individual contractor]
+    Intern: [intern, internship]
+  employment_status:
+    Active: [active, current]
+    Separated: [separated, left, inactive]
+  movement_type:
+    Promotion: [promotion, promoted]
+    Transfer: [transfer, reassignment]
+    Contract renewal: [contract renewal, renewal]
+    Contract expiry: [contract expiry, end of contract, contract ended, expiry]
+    Resignation: [resignation, resigned]
+    Retirement: [retirement, retired]
+    Termination: [termination, terminated, dismissal]
+  recruitment_status:
+    Filled: [filled]
+    Unsuccessful: [unsuccessful]
+    Cancelled: [cancelled, canceled]
+    Open: [open]
+
+# Reference list of valid country names (standard spelling). In production this
+# would be the full ISO 3166 list; here it covers every country in the data.
+valid_countries: [Kenya, Ethiopia, Uganda, Tanzania, Senegal, Democratic Republic of the Congo,
+                  Nigeria, Ghana, Cameroon, South Africa, Zimbabwe, Switzerland, France, Germany,
+                  United Kingdom, Italy, Netherlands, Canada, Bangladesh, India, Pakistan, Thailand,
+                  Philippines, Indonesia, Jordan, Egypt, Lebanon, Panama, Colombia, Brazil, Mexico]
+
+# Country name variants -> standard name (compared case-insensitively, after trimming)
+country_aliases:
+  Kenya: [republic of kenya, ke]
+  Ethiopia: [ethopia, federal republic of ethiopia]
+  Senegal: [sénégal, republic of senegal]
+  South Africa: [rsa, s. africa]
+  Switzerland: [suisse, schweiz, ch]
+  Thailand: [kingdom of thailand, thailande]
+  Bangladesh: [bangla desh, bd]
+  Jordan: [hashemite kingdom of jordan, jordon]
+  Panama: [panamá, republic of panama]
+  Democratic Republic of the Congo: [drc, dr congo, 'congo, dem. rep.', congo-kinshasa]
+  United Kingdom: [uk, great britain]
+  Tanzania: [united republic of tanzania]
+
+valid_grades: [G3, G4, G5, G6, G7, P1, P2, P3, P4, P5, D1, D2, Non-staff]
+
+# Recruitment plausibility
+recruitment:
+  max_plausible_applications: 1500     # above this: outlier, sent for manual review
