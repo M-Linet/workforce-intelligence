@@ -288,3 +288,64 @@ CREATE TABLE IF NOT EXISTS dw.fact_recruitment (
 CREATE INDEX IF NOT EXISTS ix_frec_vacancy  ON dw.fact_recruitment (vacancy_id);
 CREATE INDEX IF NOT EXISTS ix_frec_location ON dw.fact_recruitment (location_key);
 CREATE INDEX IF NOT EXISTS ix_frec_status   ON dw.fact_recruitment (recruitment_status);
+-- 5. STAGING TABLES (staging)
+--    Raw values exactly as submitted, every column TEXT, after column names
+--    are standardised. Nothing is converted or lost before validation.
+
+CREATE TABLE IF NOT EXISTS staging.employee_master (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    employee_id TEXT, first_name TEXT, last_name TEXT, gender TEXT,
+    date_of_birth TEXT, nationality TEXT, country_of_assignment TEXT,
+    duty_station TEXT, department_id TEXT, job_title TEXT,
+    employment_type TEXT, grade_level TEXT, contract_start_date TEXT,
+    contract_end_date TEXT, employment_status TEXT, supervisor_id TEXT,
+    hire_date TEXT, source_office TEXT, last_updated TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
+CREATE TABLE IF NOT EXISTS staging.workforce_snapshot (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    snapshot_id TEXT, employee_id TEXT, reporting_month TEXT,
+    employment_status TEXT, department_id TEXT, office_id TEXT, grade_level TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
+
+CREATE TABLE IF NOT EXISTS staging.movements (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    movement_id TEXT, employee_id TEXT, movement_type TEXT,
+    previous_department TEXT, new_department TEXT,
+    previous_location TEXT, new_location TEXT,
+    previous_grade TEXT, new_grade TEXT, effective_date TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
+CREATE TABLE IF NOT EXISTS staging.recruitment (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    recruitment_id TEXT, vacancy_id TEXT, department_id TEXT, office_id TEXT,
+    job_title TEXT, vacancy_open_date TEXT, vacancy_close_date TEXT,
+    application_count TEXT, shortlisted_count TEXT, interviewed_count TEXT,
+    offers_made TEXT, candidates_hired TEXT, recruitment_status TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
+
+CREATE TABLE IF NOT EXISTS staging.departments (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    department_id TEXT, department_name TEXT, department_category TEXT, directorate TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
+
+CREATE TABLE IF NOT EXISTS staging.offices (
+    file_id BIGINT NOT NULL REFERENCES audit.etl_file_registry (file_id),
+    source_row INTEGER NOT NULL,
+    office_id TEXT, office_name TEXT, country TEXT, region TEXT, city TEXT, office_type TEXT,
+    staged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (file_id, source_row)
+);
